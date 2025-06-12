@@ -6,9 +6,11 @@ func main() {
 	fmt.Println("Pointers in Go!")
 
 	var num = 10
-	
-	//var ptr *int = &num 
-	var ptr = &num // ptr is a pointer to num, it holds the memory address of num
+
+	//var ptr *int = &num         way 1
+	//ptr:=num                    way 2
+	var ptr = &num //             way 3  ptr is a pointer to num, it holds the memory address of num
+
 	fmt.Printf("type is %T\n", ptr)
 	fmt.Println("Value of num:", *ptr)
 	fmt.Println("Address of num:", ptr)

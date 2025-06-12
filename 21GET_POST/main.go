@@ -66,6 +66,20 @@ func performPostRequest() {
 	fmt.Println("Response Body:", string(databyte))
 }
 
+//A URL-encoded payload is data sent from a form using the application/x-www-form-urlencoded content type.
+
+// If a form sends:
+// <input name="username" value="abhishek" />
+// <input name="age" value="22" />
+
+// It arrives like this in the request body like:
+// username=abhishek&age=22
+
+// That’s URL-encoded format — key-value pairs joined with &, and special characters (like spaces) encoded (e.g., %20 for space).
+
+//express.urlencoded() helps convert this into:
+// req.body = { username: 'abhishek', age: '22' }
+
 func postFormRequest() {
 	const myURL = "http://localhost:5500/postform"
 	//fake form data
@@ -75,8 +89,8 @@ func postFormRequest() {
 		"city": {"New York"},
 	}
 
-	fmt.Println("Form Data:", urlValues.Encode()) // Encode the form data
-	response, err := http.PostForm(myURL, urlValues)
+	fmt.Println("Form Data:", urlValues.Encode()) // converts to URL-encoded format like: name=John&age=30&city=New+York
+	response, err := http.PostForm(myURL, urlValues) // postform sends data as application/x-www-form-urlencoded automatically we dont need to encode it manually
 	checkError(err)
 	defer response.Body.Close()
 
@@ -86,9 +100,11 @@ func postFormRequest() {
 	// response, err := http.PostForm(myURL,
 }
 
+
 func main() {
 	fmt.Println("GET requests in Go")
+	postFormRequest()
 	performGetRequest()
 	performPostRequest()
-	postFormRequest()
+	
 }
