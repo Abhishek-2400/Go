@@ -92,3 +92,12 @@ func Login(u *User) (string, error) {
 
 	return signedToken, nil
 }
+
+func FindUser(id int64) (*User, error) {
+	var user User
+	result := db.Where("id=?", id).Find(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}

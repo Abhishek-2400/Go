@@ -7,11 +7,12 @@ import (
 )
 
 func RequestRoute(r *gin.Engine) {
-	r.GET("/stock", middlewares.CustomMW, controllers.GetAllStocks)
+	r.GET("/stock", controllers.GetAllStocks)
 	r.GET("/stock/:stockid", controllers.GetStockById)
 	r.POST("/stock", controllers.CreateStock)
 	// r.PUT("/stock/{stockid}",controllers.UpdateStock)
 	r.DELETE("/stock/:stockid", controllers.DeleteStock)
 	r.POST("/signup", controllers.Signup)
 	r.POST("/login", controllers.Login)
+	r.GET("/validate", middlewares.RequireAuth, controllers.Validate)
 }
