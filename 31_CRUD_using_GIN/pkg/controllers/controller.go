@@ -7,6 +7,7 @@ import (
 
 	model "github.com/Abhishek-2400/crud_gin/pkg/models"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetAllStocks(c *gin.Context) {
@@ -65,4 +66,64 @@ func DeleteStock(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, deletedStock) //strct -> json
 
+}
+
+func Signup(c *gin.Context) {
+	// get email/password
+
+	var body = model.User{}
+	error := c.BindJSON(&body)
+	if error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": error.Error(),
+		})
+		return
+	}
+
+	//hash password
+	hash, errorPassword := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	if errorPassword != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errorPassword.Error(),
+		})
+		return
+	}
+
+	//create user
+	body.Password = string(hash)
+
+	user, dbError := model.Signup(&body)
+	if dbError != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": dbError.Error(),
+		})
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+func Login(c *gin.Context) {
+	//get email/passowrd
+	var user = model.User{}
+	error := c.BindJSON(&user)
+
+	if error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": error.Error(),
+		})
+		return
+	}
+
+	fmt.Printf("user passwird %v\n", user.Password)
+	token, jwtError := model.Login(&user)
+
+	if jwtError != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": jwtError.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+	})
 }
