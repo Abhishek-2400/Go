@@ -13,9 +13,10 @@ import (
 type User struct {
 	gorm.Model
 	Username string
-	Email    string
-	Password string
-	Stocks   []Stock `gorm:"foreignKey:UserID"` // 💡 One-to-many
+	// Email    string `gorm:"uniqueIndex"`
+	Email    string  `json:"email"`
+	Password string  `json:"password"`
+	Stocks   []Stock `json:"stocks" gorm:"foreignKey:UserID"` // 💡 One-to-many
 }
 type Stock struct {
 	gorm.Model
@@ -27,11 +28,16 @@ type Stock struct {
 
 var db *gorm.DB
 
+//var rd *redis.Client
+
 func init() {
 	config.Connect()
 	db = config.GetDB()
 	db.AutoMigrate(&Stock{})
 	db.AutoMigrate(&User{})
+
+	config.ConnectRedis()
+	// rd = config.GetRedisClient()
 }
 
 func CreateStock(s *Stock) (*Stock, error) {

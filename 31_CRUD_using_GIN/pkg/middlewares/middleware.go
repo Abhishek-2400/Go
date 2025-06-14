@@ -1,29 +1,26 @@
 package middlewares
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/Abhishek-2400/crud_gin/pkg/config"
 	model "github.com/Abhishek-2400/crud_gin/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/redis/go-redis/v9"
 )
+
+var redisClient *redis.Client
+var ctx context.Context
 
 func RequireAuth(c *gin.Context) {
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	fmt.Println("Token from cookie:", tokenString)
-
-	if strings.Count(tokenString, ".") != 2 {
-		fmt.Println("Malformed JWT:", tokenString)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -50,9 +47,42 @@ func RequireAuth(c *gin.Context) {
 			return
 		}
 		c.Set("user", user)
+		//c.Set("user", user) stores the user data in the Gin context so it can be accessed later in the same request,
+		// like in route handlers, without querying the database again.
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 	c.Next()
+}
+
+func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		redisClient = config.GetRedisClient()
+		ctx = config.GetContext()
+		ip := c.ClientIP()
+		key := fmt.Sprintf("rate_limit:%s", ip)
+
+		// Increment request count
+		count, err := redisClient.Incr(ctx, key).Result()
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Redis error"})
+			return
+		}
+
+		if count == 1 {
+			// Set expiration only the first time
+			redisClient.Expire(ctx, key, duration)
+		}
+
+		if count > int64(maxRequests) {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"error": "Rate limit exceeded. Try again later.",
+			})
+			return
+		}
+
+		// Continue to handler
+		c.Next()
+	}
 }

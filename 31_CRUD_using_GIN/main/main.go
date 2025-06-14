@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"time"
 
+	"github.com/Abhishek-2400/crud_gin/pkg/middlewares"
 	"github.com/Abhishek-2400/crud_gin/pkg/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -18,6 +20,7 @@ func init() {
 func main() {
 
 	r := gin.Default() //Initializes a Gin router using gin.Default()
+	r.Use(middlewares.RateLimiter(1, time.Hour))
 	routes.RequestRoute(r)
 	r.Run() //Starts the server on default port :8080.
 
