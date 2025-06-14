@@ -14,9 +14,7 @@ import (
 
 var NewBook models.Book
 
-func init() {
-	fmt.Println("j")
-}
+
 
 func GetBook(w http.ResponseWriter, r *http.Request) {
 	newBooks := models.GetAllBooks()

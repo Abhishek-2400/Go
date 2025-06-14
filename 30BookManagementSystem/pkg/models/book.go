@@ -17,7 +17,6 @@ type Book struct {
 }
 
 func init() {
-	fmt.Println("3")
 	config.Connect()
 	db = config.GetDB()
 	db.AutoMigrate(&Book{})
