@@ -20,7 +20,12 @@ func init() {
 func main() {
 
 	r := gin.Default() //Initializes a Gin router using gin.Default()
+
+	// When you do r.Use(...), there is no *gin.Context available yet, because:
+	// *gin.Context is created per request.
+	// Middleware functions are registered before any requests come in.
 	r.Use(middlewares.RateLimiter(1, time.Hour))
+
 	routes.RequestRoute(r)
 	r.Run() //Starts the server on default port :8080.
 

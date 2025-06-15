@@ -59,6 +59,9 @@ func RequireAuth(c *gin.Context) {
 func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		redisClient = config.GetRedisClient()
+
+		//ctx is needed by Redis to handle timeouts or cancellations in case the request takes too long or is aborted —
+		// it helps manage long-running or stuck operations.
 		ctx = config.GetContext()
 		ip := c.ClientIP()
 		key := fmt.Sprintf("rate_limit:%s", ip)
@@ -81,8 +84,22 @@ func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
 			})
 			return
 		}
+		// This is how the key value store look in my redis in this case
+		//  Key:   rate_limit:10.0.0.5
+		//  Value: 1
+		//  TTL:   59m 50s
+		// Its not strict that my key needs to be an integer only in redis
 
 		// Continue to handler
 		c.Next()
 	}
 }
+
+// Gin expects middleware like this:
+// func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
+//     return func(c *gin.Context) {
+//         // ← c is available *here*, because this inner function is called per request
+//     }
+// }
+// So we define an outer function to capture the params (maxRequests, duration), and an inner function that Gin calls later with *gin.Context when a request comes in.
+// This is a standard pattern to use whe we need to pass params to any middleware

@@ -28,4 +28,5 @@ func main() {
 
 	// Block the main goroutine so the cron keeps running
 	select {}
+	//we can use for{} infinite for loop also but it consumes more cpu than select{}
 }
